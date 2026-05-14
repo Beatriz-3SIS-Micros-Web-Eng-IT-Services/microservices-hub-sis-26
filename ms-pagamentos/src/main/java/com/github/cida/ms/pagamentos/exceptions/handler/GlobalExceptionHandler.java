@@ -1,6 +1,8 @@
 package com.github.cida.ms.pagamentos.exceptions.handler;
 
+import com.github.cida.ms.pagamentos.entities.Pagamento;
 import com.github.cida.ms.pagamentos.exceptions.DatabaseException;
+import com.github.cida.ms.pagamentos.exceptions.PagamentoAprovadoException;
 import com.github.cida.ms.pagamentos.exceptions.ResourceNotFoundException;
 import com.github.cida.ms.pagamentos.exceptions.dto.CustomErrorDTO;
 import com.github.cida.ms.pagamentos.exceptions.dto.ValidationErrorDTO;
@@ -23,6 +25,15 @@ public class GlobalExceptionHandler {
     public ResponseEntity<CustomErrorDTO> handleResourceNotFound(ResourceNotFoundException e,
                                                                  HttpServletRequest request) {
         HttpStatus status = HttpStatus.NOT_FOUND; //404
+        CustomErrorDTO err = new CustomErrorDTO(Instant.now(), status.value(),
+                e.getMessage(), request.getRequestURI());
+
+        return ResponseEntity.status(status).body(err);
+    }
+    @ExceptionHandler(PagamentoAprovadoException.class)
+    public ResponseEntity<CustomErrorDTO> handlePagamentoAprovado(PagamentoAprovadoException e,
+                                                                  HttpServletRequest request){
+        HttpStatus status=HttpStatus.CONFLICT;
         CustomErrorDTO err = new CustomErrorDTO(Instant.now(), status.value(),
                 e.getMessage(), request.getRequestURI());
 

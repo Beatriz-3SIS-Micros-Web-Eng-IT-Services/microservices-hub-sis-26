@@ -1,5 +1,6 @@
 package com.github.cida.ms.pagamentos.service;
 
+import com.github.cida.ms.pagamentos.client.PedidoClient;
 import com.github.cida.ms.pagamentos.dto.PagamentoDTO;
 import com.github.cida.ms.pagamentos.entities.Pagamento;
 import com.github.cida.ms.pagamentos.entities.Status;
@@ -18,8 +19,23 @@ public class PagamentoService {
     @Autowired
     private PagamentoRepository pagamentoRepository;
 
+    @Autowired
+    private PedidoClient pedidoClient;
+
+    @Transactional
+    public PagamentoDTO confirmarPagamentoDoPedido(Long id) {
+
+        Pagamento pagamento = pagamentoRepository.findById(id).orElseThrow(
+                () -> new ResourceNotFoundException("Recurso não encontrado. ID: " + id));
+
+        pagamento.setStatus(Status.APROVADO);
+        pagamentoRepository.save(pagamento);
+        pedidoClient.confirmarPagamento(pagamento.getPedidoId());
+        return new PagamentoDTO(pagamento);
+    }
+
     @Transactional(readOnly = true)
-    public List<PagamentoDTO> findAllPagamento(){
+    public List<PagamentoDTO> findAllPagamento() {
 
         return pagamentoRepository.findAll()
                 .stream()
@@ -28,7 +44,7 @@ public class PagamentoService {
     }
 
     @Transactional(readOnly = true)
-    public PagamentoDTO findPagamentoById(Long id){
+    public PagamentoDTO findPagamentoById(Long id) {
 
         Pagamento pagamento = pagamentoRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Recurso não encontrado. ID: " + id)
@@ -38,7 +54,7 @@ public class PagamentoService {
     }
 
     @Transactional
-    public PagamentoDTO save(PagamentoDTO pagamentoDTO){
+    public PagamentoDTO save(PagamentoDTO pagamentoDTO) {
 
         Pagamento pagamento = new Pagamento();
         mapDtoToPagamento(pagamentoDTO, pagamento);
@@ -48,7 +64,7 @@ public class PagamentoService {
     }
 
     @Transactional
-    public PagamentoDTO update(Long id, PagamentoDTO pagamentoDTO){
+    public PagamentoDTO update(Long id, PagamentoDTO pagamentoDTO) {
 
         try {
             Pagamento pagamento = pagamentoRepository.getReferenceById(id);
@@ -62,9 +78,9 @@ public class PagamentoService {
     }
 
     @Transactional
-    public void deletePagamento(Long id){
+    public void deletePagamento(Long id) {
 
-        if(!pagamentoRepository.existsById(id)){
+        if (!pagamentoRepository.existsById(id)) {
 
             throw new ResourceNotFoundException("Recurso não encontrado. ID: " + id);
         }
