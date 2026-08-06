@@ -4,6 +4,7 @@ import com.github.cida.ms.pagamentos.client.PedidoClient;
 import com.github.cida.ms.pagamentos.dto.PagamentoDTO;
 import com.github.cida.ms.pagamentos.entities.Pagamento;
 import com.github.cida.ms.pagamentos.entities.Status;
+import com.github.cida.ms.pagamentos.exceptions.PagamentoAprovadoException;
 import com.github.cida.ms.pagamentos.exceptions.ResourceNotFoundException;
 import com.github.cida.ms.pagamentos.repository.PagamentoRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -68,6 +69,12 @@ public class PagamentoService {
 
         try {
             Pagamento pagamento = pagamentoRepository.getReferenceById(id);
+
+            if (pagamento.getStatus().equals(Status.APROVADO)) {
+                throw new PagamentoAprovadoException(
+                        String.format("Pagamento id %d já está APROVADO e não pode ser alterado", id)
+                );
+            }
             mapDtoToPagamento(pagamentoDTO, pagamento);
             pagamento.setStatus(pagamentoDTO.getStatus());
             pagamento = pagamentoRepository.save(pagamento);
